@@ -1,6 +1,6 @@
 # ts\_st
 
-Simple [typescript](https://www.typescriptlang.org/) test suit with no dependencies designed to run in any of the major runtimes: [`node`](https://nodejs.org), [deno](https://deno.com/) and [bun](https://bun.com/).
+Simple [typescript](https://www.typescriptlang.org/) test suit with no dependencies designed to run in any of the major runtimes: [node](https://nodejs.org), [deno](https://deno.com/) and [bun](https://bun.com/).
 
 ## API
 

@@ -1,6 +1,6 @@
 # ts\_st
 
-Simple [typescript](https://www.typescriptlang.org/) test suit with no dependencies designed to run in any of the major runtimes: [`node`](https://nodejs.org), [`deno`](https://deno.com/) and [`bun`](https://bun.com/).
+Simple [typescript](https://www.typescriptlang.org/) test suit with no dependencies designed to run in any of the major runtimes: [`node`](https://nodejs.org), [deno](https://deno.com/) and [bun](https://bun.com/).
 
 ## API
 
@@ -10,33 +10,29 @@ The test cases must be described by funcitons of type
 type TestFn = () => void | Promise<void>
 ```
 
-The success of the test is represented by the normal ending of the funciton, while the failure is stated by throwing an exception. There are 2 functions essential to this process:
+There are 2 functions essential to this process:
 
 ``` typescript
+// Register `test_fn` in the test system associated with the `name`
 function test(name: string, test_fn: TestFn): void;
-```
 
-register `fn` in the test system associated with the `name`;
-
-```typescript
+// Runs registered tests
 function run_test(): Promise<void>;
 ```
 
-runs registered tests;
-
-The throwing can be done manualy or by the assertion functions provided:
+The success of the test is represented by the normal ending of the funciton, while the failure is stated by throwing an exception, either manually or by the assertion functions provided:
 
 ```typescript
+// Asserts the condition helping controll flow analysis and type narrowing
+// If `cond` is falsy throws error with `msg`
 function assert(condition: unknown, msg?: string): asserts cond;
-```
 
-asserts the condition helping controll flow analysis and type narrowing. If `cond` is falsy throws error with `msg`;
-
-```typescript
+// Asserts `a` equals `b`
+// Do not act on controll flow analysis
+// In case `a != b` throws an error with `msg`
 function assert_equals(a: unknown, b: unknown, msg?: string): void;
 ```
 
-asserts `a` equals `b`. Do not act on controll flow analysis. In case `a != b` throws an error with `msg`;
 
 ## Example
 

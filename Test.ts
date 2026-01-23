@@ -64,11 +64,11 @@ export async function run_tests(group: TestGroup = internal_tests, padding = 0):
     } else {
       const { name, test_fn } = el;
       const old_cl = console.log, old_ce = console.error, old_cw = console.warn;
-      enum LogType { LOG, ERROR, WARN };
+      type LogType = `LOG` | `ERROR` | `WARN`;
       let log_stream: Array<{ type: LogType, data: any[] }> = [];
-      console.log = (...data: any[]): void => { log_stream = [ ...log_stream, { type: LogType.LOG, data } ] };
-      console.error = (...data: any[]): void => { log_stream = [ ...log_stream, { type: LogType.ERROR, data } ] };
-      console.warn = (...data: any[]): void => { log_stream = [ ...log_stream, { type: LogType.WARN, data } ] };
+      console.log = (...data: any[]): void => { log_stream = [ ...log_stream, { type: `LOG`, data } ] };
+      console.error = (...data: any[]): void => { log_stream = [ ...log_stream, { type: `ERROR`, data } ] };
+      console.warn = (...data: any[]): void => { log_stream = [ ...log_stream, { type: `WARN`, data } ] };
       try {
         await test_fn();
         old_cl(`\b\b- ${esc_green}✓${esc_reset} ${name}`);
@@ -80,9 +80,9 @@ export async function run_tests(group: TestGroup = internal_tests, padding = 0):
       console.log = old_cl; console.error = old_ce; console.warn = old_cw;
       for(const l of log_stream) {
         switch(l.type) {
-          case LogType.LOG: console.log(...l.data); break;
-          case LogType.ERROR: console.error(...l.data); break;
-          case LogType.WARN: console.warn(...l.data); break;
+          case `LOG`: console.log(...l.data); break;
+          case `ERROR`: console.error(...l.data); break;
+          case `WARN`: console.warn(...l.data); break;
         }
       }
       test_count++;
@@ -95,8 +95,8 @@ export async function run_tests(group: TestGroup = internal_tests, padding = 0):
     for(const f of failed) {
       console.error(`- ${esc_red}${f}${esc_reset} failed`);
     }
-    console.log("");
-    if(padding == 0) throw "TestFailed";
+    console.log(``);
+    if(padding == 0) throw `TestFailed`;
   }
   else console.log(`\nAll ${internal_tests.length} tests passed`);
   return [failed, test_count];
@@ -112,7 +112,7 @@ export async function run_tests(group: TestGroup = internal_tests, padding = 0):
  * Asserts the condition helping controll flow analysis and type narrowing
  * If `cond` is falsy throws error with `msg`
  */
-export function assert(cond: unknown, msg = ""): asserts cond {
+export function assert(cond: unknown, msg = ``): asserts cond {
   if (!cond) throw `- Assertion failed${msg ? `: ${msg}` : ``}`;
 }
 
@@ -123,7 +123,7 @@ export function assert(cond: unknown, msg = ""): asserts cond {
  */
 export function assert_equals(a: unknown, b: unknown, msg?: string) {
   const ok =
-    typeof a === "number" && typeof b === "number"
+    typeof a === `number` && typeof b === `number`
       ? Object.is(a, b)
       : JSON.stringify(a) === JSON.stringify(b);
 
@@ -143,7 +143,7 @@ let originalConsoleLog: typeof console.log | null = null;
 let originalConsoleError: typeof console.error | null = null;
 let originalConsoleWarn: typeof console.warn | null = null;
 
-function pad_console(prefix: string | number = "  ") {
+function pad_console(prefix: string | number = `  `) {
 
   const pad =
     typeof prefix === `number`
@@ -154,13 +154,13 @@ function pad_console(prefix: string | number = "  ") {
     originalConsoleLog = console.log;
     console.log = (...args: unknown[]) => {
       const text = args
-        .map(a => typeof a === "string" ? a : String(a))
-        .join(" ");
+        .map(a => typeof a === `string` ? a : String(a))
+        .join(` `);
 
       const padded = text
-        .split("\n")
+        .split(`\n`)
         .map(line => pad + line)
-        .join("\n");
+        .join(`\n`);
 
       originalConsoleLog!(padded);
     };
@@ -170,13 +170,13 @@ function pad_console(prefix: string | number = "  ") {
     originalConsoleError = console.error;
     console.error = (...args: unknown[]) => {
       const text = args
-      .map(a => typeof a === "string" ? a : String(a))
-      .join(" ");
+      .map(a => typeof a === `string` ? a : String(a))
+      .join(` `);
 
       const padded = text
-      .split("\n")
+      .split(`\n`)
       .map(line => pad + line)
-      .join("\n");
+      .join(`\n`);
 
       originalConsoleError!(padded);
     };
@@ -186,13 +186,13 @@ function pad_console(prefix: string | number = "  ") {
     originalConsoleWarn = console.warn;
     console.warn = (...args: unknown[]) => {
       const text = args
-      .map(a => typeof a === "string" ? a : String(a))
-      .join(" ");
+      .map(a => typeof a === `string` ? a : String(a))
+      .join(` `);
 
       const padded = text
-      .split("\n")
+      .split(`\n`)
       .map(line => pad + line)
-      .join("\n");
+      .join(`\n`);
 
       originalConsoleWarn!(padded);
     };

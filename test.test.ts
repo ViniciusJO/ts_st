@@ -20,7 +20,7 @@ test("test assert not equals default msg", () => {
   assert_equals(3, 4);
 });
 
-const test_array: TestGroup = [
+const test_group: TestGroup = [
   { name: "assert this", test_fn: () => assert(true) },
   { name: "assert that", test_fn: () => assert(false) },
   { name: "inner test group", group: [
@@ -33,7 +33,7 @@ const test_array: TestGroup = [
   ]},
 ];
 
-test("group 1", test_array);
+test("group 1", test_group);
 
 run_tests();
 

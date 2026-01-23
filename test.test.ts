@@ -16,11 +16,15 @@ test("test assert not equals", () => {
   assert_equals(1, 2, "1 != 2");
 });
 
+const test_group: TestGroup = [];
+
 test("test assert not equals default msg", () => {
   assert_equals(3, 4);
-});
+}, test_group);
 
-const test_group: TestGroup = [
+test("test group", test_group);
+
+const other_test_group: TestGroup = [
   { name: "assert this", test_fn: () => assert(true) },
   { name: "assert that", test_fn: () => assert(false) },
   { name: "inner test group", group: [
@@ -28,12 +32,13 @@ const test_group: TestGroup = [
     { name: "another assertion", test_fn: () => assert(true) },
     { name: "another nested test group", group: [
       { name: "deep test", test_fn: () => assert_equals(false, true) },
+      { name: "direct throw", test_fn: () => { throw `MANUALLY THROWING`; } },
       { name: "last test", test_fn: () => assert(true) },
     ]},
   ]},
 ];
 
-test("group 1", test_group);
+test("other test group", other_test_group);
 
 run_tests();
 

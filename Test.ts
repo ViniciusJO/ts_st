@@ -46,7 +46,7 @@ export async function run_tests(group: TestGroup = internal_tests, padding = 0):
   for (const el of group) {
     if(is_test_group(el)) {
       const { name, group } = el;
-      const _pfx = `\b\b-   `;
+      const _pfx = `\b\b- ${padding > 0 ? `  ` : ``}`;
       console.log(`${_pfx}${esc_yellow}v ${name}${esc_reset}`);
       reset_console_padding();
       // console.group(name);

@@ -106,33 +106,33 @@ outputs on [`deno`](https://deno.com/):
 - ✓ test assert equals
 - ✗ test assert not equals
 - Assertion failed: 1 != 2
--   v test group
-  | - ✗ test assert not equals default msg
-  |  - Assertion failed: 
+- v test group
+  |- ✗ test assert not equals default msg
+  |  - Assertion failed:
   |    > expected: 4
   |    < received: 3
--   ^ test group
--   v other test group
-  | - ✓ assert this
-  | - ✗ assert that
+- ^ test group
+- v other test group
+  |- ✓ assert this
+  |- ✗ assert that
   |  - Assertion failed
-  | -   v inner test group
-  |    | - ✗ equality test
-  |    |  - Assertion failed: 
+  |-   v inner test group
+  |    |- ✗ equality test
+  |    |  - Assertion failed:
   |    |    > expected: true
   |    |    < received: false
-  |    | - ✓ another assertion
-  |    | -   v another nested test group
-  |    |    | - ✗ deep test
-  |    |    |  - Assertion failed: 
+  |    |- ✓ another assertion
+  |    |-   v another nested test group
+  |    |    |- ✗ deep test
+  |    |    |  - Assertion failed:
   |    |    |    > expected: true
   |    |    |    < received: false
-  |    |    | - ✗ direct throw
+  |    |    |- ✗ direct throw
   |    |    |  MANUALLY THROWING
-  |    |    | - ✓ last test
-  |    | -   ^ another nested test group
-  | -   ^ inner test group
--   ^ other test group
+  |    |    |- ✓ last test
+  |    |-   ^ another nested test group
+  |-   ^ inner test group
+- ^ other test group
 
 7/12 test(s) failed
 
@@ -145,6 +145,7 @@ outputs on [`deno`](https://deno.com/):
 - other test group -> inner test group -> another nested test group -> direct throw failed
 
 error: Uncaught (in promise) "TestFailed"
+
 ```
 
 # TODO

@@ -1,22 +1,33 @@
+// deno-lint-ignore-file no-explicit-any
 const esc_red = `\x1b[31m`;
 const esc_green = `\x1b[32m`;
 const esc_blue = `\x1b[34m`;
+const esc_yellow = `\x1b[35m`;
 const esc_reset = `\x1b[0m`;
 
 /**
  * Signature of the test function passed to the `test` funciton
  */
 export type TestFn = () => void | Promise<void>;
-type TestObject = { name: string; fn: TestFn };
-type TestArray = Array<TestObject>;
+type TestObject = { name: string; test_fn: TestFn };
+type TestGroupObject = { name: string; group: TestGroup };
+export type TestGroup = Array<TestObject | TestGroupObject>;
 
-const tests: TestArray = [];
+function is_test_group(o: unknown): o is TestGroupObject { return `group` in (o as any); }
+function is_test_array(o: unknown): o is TestGroup { return Array.isArray(o); }
+
+
+const internal_tests: TestGroup = [];
 
 /**
- * Register `test_fn` in the test system associated with the `name`
+ * Register `test` function or group in the test system associated with the `name`
  */
-export function test(name: string, test_fn: TestFn) {
-  tests.push({ name, fn: test_fn });
+export function test(name: string, test_entry: TestFn | TestGroup, array = internal_tests) {
+  if(is_test_array(test_entry)) {
+    array.push({ name, group: test_entry });
+  } else {
+    array.push({ name, test_fn: test_entry });
+  }
 }
 
 /**
@@ -41,36 +52,130 @@ export function assert_equals(a: unknown, b: unknown, msg?: string) {
 
   if (!ok) {
     throw `  - Assertion failed: ${msg ??
-      `\n  - expected: ${esc_green}${JSON.stringify(b)}${esc_reset}\n  - received: ${esc_red}${JSON.stringify(a)}${esc_reset}`}`
+      `\n  > expected: ${esc_green}${JSON.stringify(b)}${esc_reset}\n  < received: ${esc_red}${JSON.stringify(a)}${esc_reset}`}`
   }
 }
 
 /**
  * Runs registered tests
  */
-export async function run_tests(): Promise<void> {
-  const failed: Array<string> = [];
+export async function run_tests(tests: TestGroup = internal_tests, padding = 0): Promise<[string[], number]> {
+  let test_count = 0;
+  let failed: Array<string> = [];
 
-  console.log(`\n${esc_blue}[ Test Runner ]${esc_reset}\n`);
+  if(!padding) console.log(`\n${esc_blue}[ Test Runner ]${esc_reset}\n`);
 
-  for (const { name, fn } of tests) {
-    try {
-      await fn();
-      console.log(`${esc_green}✓${esc_reset} ${name}`);
-    } catch (e) {
-      failed.push(name);
-      console.error(`${esc_red}✗${esc_reset} ${name}`);
-      console.error(e);
+  for (const el of tests) {
+    if(is_test_group(el)) {
+      const { name, group } = el;
+      console.log(`- ${esc_yellow}v - ${name}${esc_reset}`);
+      reset_console_padding();
+      pad_console((padding + 1) * 4);
+        let f: string[] = [];
+        let count = 0;
+        try { [f, count] = await run_tests(group, padding + 1); } catch(e) { e; }
+      reset_console_padding();
+      pad_console((padding) * 4);
+      console.log(`- ${esc_yellow}^ - ${name}${esc_reset}`);
+      reset_console_padding();
+      failed = [ ...failed, ...f.map(el => `${name} -> ${el}`) ];
+      test_count += count;
+    } else {
+      const { name, test_fn } = el;
+      try {
+        await test_fn();
+        console.log(`- ${esc_green}✓${esc_reset} ${name}`);
+      } catch (e) {
+        failed.push(name);
+        console.error(`- ${esc_red}✗${esc_reset} ${name}`);
+        console.error(e);
+      }
+      test_count++;
     }
   }
 
-  if (failed.length > 0) {
-    console.error(`\n${failed.length}/${tests.length} test(s) failed\n`);
+  b: if (failed.length > 0) {
+    if(padding) break b;
+    console.error(`\n${failed.length}/${test_count} test(s) failed\n`);
     for(const f of failed) {
-      console.error(`- ${esc_red}"${f}"${esc_reset} failed`);
+      console.error(`- ${esc_red}${f}${esc_reset} failed`);
     }
     console.log("");
-    throw "TestFailed";
+    if(padding == 0) throw "TestFailed";
   }
-  else console.log(`\nAll ${tests.length} tests passed`);
+  else console.log(`\nAll ${internal_tests.length} tests passed`);
+  return [failed, test_count];
 }
+
+let originalConsoleLog: typeof console.log | null = null;
+let originalConsoleError: typeof console.error | null = null;
+let originalConsoleWarn: typeof console.warn | null = null;
+
+
+function pad_console(prefix: string | number = "  ") {
+  // if (originalConsoleLog) return; // already padded
+
+  const pad =
+    typeof prefix === `number`
+      ? `  |`.repeat(prefix/4)
+      : `|` + prefix;
+
+  originalConsoleLog = console.log;
+  originalConsoleError = console.log;
+  originalConsoleWarn = console.log;
+
+  console.log = (...args: unknown[]) => {
+    const text = args
+      .map(a => typeof a === "string" ? a : String(a))
+      .join(" ");
+
+    const padded = text
+      .split("\n")
+      .map(line => pad + line)
+      .join("\n");
+
+    originalConsoleLog!(padded);
+  };
+
+  console.error = (...args: unknown[]) => {
+    const text = args
+      .map(a => typeof a === "string" ? a : String(a))
+      .join(" ");
+
+    const padded = text
+      .split("\n")
+      .map(line => pad + line)
+      .join("\n");
+
+    originalConsoleError!(padded);
+  };
+
+  console.warn = (...args: unknown[]) => {
+    const text = args
+      .map(a => typeof a === "string" ? a : String(a))
+      .join(" ");
+
+    const padded = text
+      .split("\n")
+      .map(line => pad + line)
+      .join("\n");
+
+    originalConsoleWarn!(padded);
+  };
+}
+
+function reset_console_padding() {
+  if (originalConsoleLog) {
+    console.log = originalConsoleLog;
+    originalConsoleLog = null;
+  }
+  if (originalConsoleError) {
+    console.error = originalConsoleError;
+    originalConsoleError = null;
+  }
+  if (originalConsoleWarn) {
+    console.warn = originalConsoleWarn;
+    originalConsoleWarn = null;
+  }
+}
+
